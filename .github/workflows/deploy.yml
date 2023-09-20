@@ -1,0 +1,62 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - master_prod
+
+# Main for production
+# Staging
+# Master
+
+env:
+  CARGO_TERM_COLOR: always
+  DATABASE_URL: postgres://postgres:1234@127.0.0.1:5432/db_name
+  ENC_KEY: enc_key_any_random
+  STRIPE_SECRET_KEY_CA: Bearer sk_test_FkLrFDJMf4OQ52t7pZFUtCih0055ajjyH5
+  STRIPE_SECRET_KEY_US: Bearer sk_test_FkLrFDJMf4OQ52t7pZFUtCih0055ajjyH5
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: 1234
+          POSTGRES_DB: aristotle
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - uses: Swatinem/rust-cache@v2
+      - uses: cargo-bins/cargo-binstall@main
+      - name: Setup Local Database
+        run: |
+          cargo binstall sqlx-cli cargo-nextest --no-confirm --force
+          sqlx migrate run
+      - name: Unit test
+        run: cargo nextest run
+      - name: 🔨 Build for release
+        run: |
+          pip install cargo-lambda
+          cargo lambda build --release --arm64
+      - name: Migrate Production Database
+        run: sqlx migrate run
+        env:
+          DATABASE_URL: ${{ secrets.ARISTOTLE_DATABASE_URL }}
+      - name: 🔨 Deploy to AWS Lambda
+        run: |
+          cargo lambda deploy <app_name>
+        env:
+          AWS_DEFAULT_REGION: us-west-2
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

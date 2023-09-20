@@ -1,0 +1,29 @@
+[package]
+name = "services"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sqlx = { workspace = true, features = ["postgres", "runtime-tokio", "tls-rustls", "chrono", "json"] }
+serde = { workspace = true, features = ["derive"] }
+http = { workspace = true }
+serde_json = { workspace = true }
+actix-web = { workspace = true }
+chrono = { workspace = true, features = ["serde"] }
+validator = { workspace = true, features = ["derive"] }
+async-trait = { workspace = true }
+actix-web-validator = { workspace = true }
+scooby = { workspace = true }
+reqwest = { workspace = true }
+struct_iterable = { workspace = true }
+strum_macros = "0.25.1"
+strum = "0.25.0"
+#sqlx-actix-streaming = { git = "https://github.com/rich-murphey/sqlx-actix-streaming/" }
+
+jsonwebtoken = "8.3.0"
+thiserror = "1.0.40"
+dotenvy = "0.15"
+
+[features]
+admin = []
+agent = []

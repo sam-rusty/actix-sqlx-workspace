@@ -1,0 +1,20 @@
+[package]
+name = "authorization"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+http = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+chrono = { workspace = true, features = ["serde"] }
+sqlx = { workspace = true, features = ["postgres", "runtime-tokio", "tls-rustls", "chrono", "json", "migrate"] }
+serde_json = { workspace = true }
+strum_macros = { workspace = true }
+validator = { workspace = true, features = ["derive", "phone"] }
+bcrypt = "0.15.0"
+
+rand = "0.8.5"
+async-recursion = "1.0.4"
+
+services = { path = "../services" }
+integration = { path = "../../lib/integration" }

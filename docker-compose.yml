@@ -1,0 +1,12 @@
+version: '3.7'
+
+services:
+  api:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      args:
+        APP_NAME: api
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgres://postgres:1234@host.docker.internal:5432/db_name

@@ -1,0 +1,42 @@
+name: Continuous Integration
+
+on: [ push, pull_request ]
+
+env:
+  CARGO_TERM_COLOR: always
+  DATABASE_URL: postgres://postgres:1234@127.0.0.1:5432/db_name
+  ENC_KEY: enc_key_any_random
+  STRIPE_SECRET_KEY_CA: Bearer sk_test_FkLrFDJMf4OQ52t7pZFUtCih0055ajjyH5
+  STRIPE_SECRET_KEY_US: Bearer sk_test_FkLrFDJMf4OQ52t7pZFUtCih0055ajjyH5
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: 1234
+          POSTGRES_DB: db_name
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - uses: Swatinem/rust-cache@v2
+      - uses: cargo-bins/cargo-binstall@main
+      - name: Run Test
+        run: |
+          cargo binstall sqlx-cli --no-confirm --force
+          sqlx migrate run
+          cargo test
+
+# cargo binstall sqlx-cli cargo-nextest --no-confirm --force
+# cargo nextest run
